@@ -1,0 +1,313 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>مسرح تي بارثينوس – درب الصليب 2026</title>
+<link href="https://fonts.googleapis.com/css2?family=Cairo:wght@400;600;700;900&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --bg: #0F0F0F; --surface: #1A1A1A; --surface2: #242424;
+    --border: rgba(255,255,255,0.08); --text: #F5F5F5;
+    --text-muted: #888; --gold: #C9922A;
+    --red: #EF4444; --green: #22C55E;
+  }
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  body { font-family: 'Cairo', sans-serif; background: var(--bg); color: var(--text); min-height: 100vh; display: flex; flex-direction: column; }
+
+  header {
+    background: var(--surface);
+    border-bottom: 1px solid var(--border);
+    text-align: center;
+    padding: 1.2rem 1rem;
+  }
+  .theater-name { font-size: 20px; font-weight: 900; color: var(--gold); }
+  .theater-sub  { font-size: 12px; color: var(--text-muted); margin-top: 4px; }
+  .play-name    { font-size: 15px; font-weight: 700; color: var(--text); margin-top: 6px; }
+
+  main { flex: 1; padding: 1.2rem; max-width: 700px; margin: 0 auto; width: 100%; }
+
+  .stats { display: flex; gap: 10px; flex-wrap: wrap; justify-content: center; margin-bottom: 1.2rem; }
+  .stat { background: var(--surface2); border: 1px solid var(--border); border-radius: 10px; padding: 8px 16px; text-align: center; min-width: 90px; }
+  .stat-val { font-size: 22px; font-weight: 700; }
+  .stat-lbl { font-size: 11px; color: var(--text-muted); margin-top: 2px; }
+  .sv-total { color: var(--text); }
+  .sv-sold  { color: var(--red); }
+  .sv-free  { color: var(--green); }
+
+  .legend { display: flex; gap: 14px; justify-content: center; margin-bottom: 1rem; flex-wrap: wrap; }
+  .leg-item { display: flex; align-items: center; gap: 6px; font-size: 12px; color: var(--text-muted); }
+  .leg-dot { width: 14px; height: 14px; border-radius: 3px; }
+  .ld-gold   { background: rgba(201,146,42,0.2); border: 1px solid rgba(201,146,42,0.5); }
+  .ld-silver { background: rgba(107,114,128,0.15); border: 1px solid rgba(107,114,128,0.3); }
+  .ld-sold   { background: var(--red); }
+
+  .stage-wrap { text-align: center; margin-bottom: 8px; }
+  .stage-box {
+    display: inline-block;
+    background: linear-gradient(135deg, #C9922A, #E0A830);
+    color: #000; font-weight: 900; font-size: 14px; letter-spacing: 0.12em;
+    padding: 9px 32px; border-radius: 8px 8px 0 0;
+  }
+
+  .map-scroll { overflow-x: auto; }
+  .map-wrap { display: flex; flex-direction: column; gap: 4px; align-items: center; min-width: 380px; padding-bottom: 1rem; }
+  .seat-row { display: flex; align-items: center; gap: 3px; width: 100%; }
+  .row-label { width: 26px; text-align: center; font-size: 10px; color: var(--text-muted); font-weight: 700; flex-shrink: 0; }
+  .seats-wrap { display: flex; gap: 3px; flex: 1; justify-content: center; }
+  .seat { width: 20px; height: 20px; border-radius: 3px; flex-shrink: 0; transition: transform 0.15s; }
+  .seat.gold-free   { background: rgba(201,146,42,0.18); border: 1px solid rgba(201,146,42,0.45); }
+  .seat.silver-free { background: rgba(107,114,128,0.13); border: 1px solid rgba(107,114,128,0.35); }
+  .seat.sold        { background: var(--red); border: 1px solid #c0392b; }
+
+  /* Right side label: type + seat count */
+  .row-right { width: 80px; font-size: 10px; flex-shrink: 0; display: flex; align-items: center; gap: 4px; }
+  .row-type-badge { font-size: 9px; font-weight: 700; padding: 1px 4px; border-radius: 3px; flex-shrink: 0; }
+  .row-type-G { background: rgba(201,146,42,0.15); color: rgba(201,146,42,0.9); }
+  .row-type-S { background: rgba(107,114,128,0.15); color: rgba(107,114,128,0.7); }
+  .row-seat-count { font-size: 9px; color: var(--text-muted); white-space: nowrap; }
+
+  /* Aisle divider */
+  .aisle-row { display: flex; align-items: center; gap: 3px; width: 100%; margin: 3px 0; }
+  .aisle-label-space { width: 26px; flex-shrink: 0; }
+  .aisle-line { flex: 1; display: flex; align-items: center; justify-content: center; position: relative; }
+  .aisle-line::before { content: ''; position: absolute; left: 0; right: 0; top: 50%; border-top: 1px dashed rgba(255,255,255,0.12); }
+  .aisle-text { background: var(--bg); padding: 0 8px; font-size: 10px; color: rgba(255,255,255,0.3); letter-spacing: 0.15em; font-weight: 600; position: relative; z-index: 1; }
+  .aisle-right { width: 80px; flex-shrink: 0; }
+
+  .loading { text-align: center; padding: 3rem; color: var(--text-muted); font-size: 14px; }
+  .refresh-bar { text-align: center; padding: 0.8rem; font-size: 12px; color: var(--text-muted); }
+  .refresh-bar span { cursor: pointer; color: var(--gold); text-decoration: underline; }
+
+  .show-tabs { display: flex; gap: 10px; justify-content: center; margin-bottom: 1.2rem; flex-wrap: wrap; }
+  .show-tab {
+    padding: 10px 22px; border-radius: 10px; border: 1.5px solid var(--border);
+    background: var(--surface2); color: var(--text-muted); font-family: 'Cairo', sans-serif;
+    font-size: 14px; font-weight: 600; cursor: pointer; transition: all 0.2s; text-align: center;
+  }
+  .show-tab .show-tab-name { display: block; font-size: 15px; font-weight: 700; }
+  .show-tab .show-tab-date { display: block; font-size: 11px; margin-top: 2px; }
+  .show-tab.active { background: rgba(201,146,42,0.12); border-color: var(--gold); color: var(--gold); }
+  .show-tab:hover:not(.active) { border-color: rgba(255,255,255,0.2); color: var(--text); }
+
+  @media(max-width:480px) { .seat { width: 17px; height: 17px; } }
+
+  .booking-box {
+    margin-top: 1.5rem;
+    background: linear-gradient(135deg, #1A1A1A, #242424);
+    border: 1px solid var(--border);
+    border-radius: 14px;
+    padding: 1.2rem;
+    text-align: center;
+    box-shadow: 0 10px 25px rgba(0,0,0,0.3);
+  }
+  .booking-title {
+    font-size: 18px;
+    font-weight: 900;
+    color: var(--gold);
+    margin-bottom: 0.6rem;
+  }
+  .booking-text {
+    font-size: 13px;
+    color: var(--text-muted);
+    margin: 6px 0;
+  }
+  .booking-link {
+    display: inline-block;
+    margin: 10px 0;
+    padding: 10px 16px;
+    background: linear-gradient(135deg, #C9922A, #E0A830);
+    color: #000;
+    font-weight: 700;
+    border-radius: 8px;
+    text-decoration: none;
+    transition: 0.2s;
+  }
+  .booking-link:hover {
+    transform: scale(1.05);
+  }
+  .whatsapp-btn {
+    display: inline-block;
+    margin-top: 8px;
+    padding: 10px 16px;
+    background: #25D366;
+    color: #fff;
+    font-weight: 700;
+    border-radius: 8px;
+    text-decoration: none;
+    transition: 0.2s;
+  }
+  .whatsapp-btn:hover {
+    transform: scale(1.05);
+  }
+  .text-info {
+    font-size: 12px;
+    color: var(--text-muted);
+    margin-top: 6px;
+    word-break: break-all;
+    text-align: center;
+  }
+  .text-info a {
+    color: var(--gold);
+    text-decoration: underline;
+  }
+  .divider {
+    height: 1px;
+    background: rgba(255,255,255,0.08);
+    margin: 10px 0;
+  }
+
+
+
+
+
+</style>
+</head>
+<body>
+<header>
+  <div class="theater-name">🎭 مسرح تي بارثينوس</div>
+  <div class="theater-sub">كنيسة السيدة العذراء مريم – توريل المنصورة</div>
+  <div class="play-name">مسرحية درب الصليب 2026 — بهذا تغلب</div>
+</header>
+
+<main>
+  <div id="loading" class="loading">جاري تحميل الخريطة...</div>
+  <div id="content" style="display:none">
+    <div class="show-tabs" id="show-tabs"></div>
+    <div class="stats" id="stats"></div>
+    <div class="legend">
+      <div class="leg-item"><div class="leg-dot ld-gold"></div>جولد (متاح)</div>
+      <div class="leg-item"><div class="leg-dot ld-silver"></div>سيلفر (متاح)</div>
+      <div class="leg-item"><div class="leg-dot ld-sold"></div>مُباع</div>
+    </div>
+    <div class="stage-wrap"><div class="stage-box">🎭 المسرح</div></div>
+    <div class="map-scroll"><div class="map-wrap" id="map"></div></div>
+  </div>
+  <div class="refresh-bar">آخر تحديث: <span id="last-update">—</span> &nbsp;|&nbsp; <span onclick="loadMap()">تحديث الآن</span></div>
+  <!-- إضافة أسفل الـ <main> قبل </main> -->
+  <div class="booking-box">
+    <div class="booking-title">🎟️ حجز التذاكر أونلاين</div>
+    <p class="booking-text">
+      يمكنك حجز التذاكر بسهولة من خلال تحويل المبلغ عبر InstaPay:
+    </p>
+    <a href="https://ipn.eg/S/menamagdyhalem/instapay/8ZrRYo" target="_blank" class="booking-link">
+      ادفع الآن عبر InstaPay
+    </a>
+    <div class="text-info">
+      رابط InstaPay: <a href="https://ipn.eg/S/menamagdyhalem/instapay/8ZrRYo" target="_blank">
+        https://ipn.eg/S/menamagdyhalem/instapay/8ZrRYo
+      </a>
+    </div>
+    <div class="divider"></div>
+    <p class="booking-text">
+      بعد التحويل، يرجى التواصل عبر واتساب:
+    </p>
+    <a href="https://wa.me/201018404884" target="_blank" class="whatsapp-btn">
+      💬 تواصل على واتساب
+    </a>
+    <div class="text-info">
+      رقم واتساب: <a href="https://wa.me/201018404884" target="_blank">01018404884</a>
+    </div>
+  </div>
+
+
+
+</main>
+
+<script>
+const SHOWS = [
+  { id: 1, name: 'عرض الخميس',  date: 'الخميس 2 أبريل 2026' },
+  { id: 2, name: 'عرض الجمعة', date: 'الجمعة 3 أبريل 2026' }
+];
+let currentShow = 1;
+
+function renderShowTabs() {
+  const wrap = document.getElementById('show-tabs');
+  wrap.innerHTML = SHOWS.map(s => `
+    <button class="show-tab ${s.id === currentShow ? 'active' : ''}" onclick="selectShow(${s.id})">
+      <span class="show-tab-name">${s.name}</span>
+      <span class="show-tab-date">${s.date}</span>
+    </button>
+  `).join('');
+}
+
+function selectShow(id) {
+  currentShow = id;
+  renderShowTabs();
+  loadMap();
+}
+
+async function loadMap() {
+  try {
+    const res = await fetch('/api/seatmap?show_id=' + currentShow);
+    const rows = await res.json();
+
+    const totalSeats = rows.reduce((a, r) => a + r.seats, 0);
+    const totalSold  = rows.reduce((a, r) => a + r.sold, 0);
+
+    document.getElementById('stats').innerHTML = `
+      <div class="stat"><div class="stat-val sv-total">${totalSeats}</div><div class="stat-lbl">إجمالي المقاعد</div></div>
+      <div class="stat"><div class="stat-val sv-sold">${totalSold}</div><div class="stat-lbl">مُباع</div></div>
+      <div class="stat"><div class="stat-val sv-free">${totalSeats - totalSold}</div><div class="stat-lbl">متاح</div></div>
+    `;
+
+    const map = document.getElementById('map');
+    map.innerHTML = '';
+    rows.forEach(r => {
+
+      // ── ممر قبل الصف 14 ──
+      if (r.row === 14) {
+        const aisleEl = document.createElement('div');
+        aisleEl.className = 'aisle-row';
+        aisleEl.innerHTML = `
+          <div class="aisle-label-space"></div>
+          <div class="aisle-line"><span class="aisle-text">م م ر</span></div>
+          <div class="aisle-right"></div>`;
+        map.appendChild(aisleEl);
+      }
+
+      const rowEl = document.createElement('div');
+      rowEl.className = 'seat-row';
+
+      // رقم الصف على اليمين
+      const lbl = document.createElement('div');
+      lbl.className = 'row-label';
+      lbl.textContent = r.row;
+      rowEl.appendChild(lbl);
+
+      // الكراسي
+      const sw = document.createElement('div');
+      sw.className = 'seats-wrap';
+      for (let s = 0; s < r.seats; s++) {
+        const seat = document.createElement('div');
+        seat.className = 'seat ' + (s < r.sold ? 'sold' : (r.isGold ? 'gold-free' : 'silver-free'));
+        sw.appendChild(seat);
+      }
+      rowEl.appendChild(sw);
+
+      // الجانب الأيسر: نوع الصف + عدد الكراسي
+      const right = document.createElement('div');
+      right.className = 'row-right';
+      const typeClass = r.isGold ? 'row-type-G' : 'row-type-S';
+      const typeLabel = r.isGold ? 'G' : 'S';
+      right.innerHTML = `<span class="row-type-badge ${typeClass}">${typeLabel}</span><span class="row-seat-count">عدد الكراسي: ${r.seats}</span>`;
+      rowEl.appendChild(right);
+
+      map.appendChild(rowEl);
+    });
+
+    document.getElementById('last-update').textContent = new Date().toLocaleTimeString('ar-EG');
+    document.getElementById('loading').style.display = 'none';
+    document.getElementById('content').style.display = 'block';
+  } catch(e) {
+    document.getElementById('loading').textContent = 'خطأ في تحميل البيانات. حاول تاني.';
+  }
+}
+
+renderShowTabs();
+loadMap();
+setInterval(loadMap, 60000);
+</script>
+</body>
+</html>
+
