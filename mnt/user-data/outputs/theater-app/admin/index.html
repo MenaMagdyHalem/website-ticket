@@ -1,0 +1,585 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>أدمن – مسرح بارثينوس</title>
+<link href="https://fonts.googleapis.com/css2?family=Cairo:wght@400;500;600;700;900&display=swap" rel="stylesheet">
+<script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
+<style>
+:root{
+  --gold:#C9922A;--bg:#0F0F0F;--surface:#1A1A1A;--surface2:#242424;--surface3:#2E2E2E;
+  --border:rgba(255,255,255,0.08);--text:#F5F5F5;--text-muted:#888;--text-dim:#555;
+  --green:#22C55E;--green-light:rgba(34,197,94,0.12);
+  --red:#EF4444;--red-light:rgba(239,68,68,0.12);
+  --blue:#3B82F6;--blue-light:rgba(59,130,246,0.12);
+  --amber:#F59E0B;--amber-light:rgba(245,158,11,0.12);
+  --radius:12px;--radius-sm:8px;
+}
+*{box-sizing:border-box;margin:0;padding:0;}
+body{font-family:'Cairo',sans-serif;background:var(--bg);color:var(--text);min-height:100vh;font-size:15px;}
+
+/* LOGIN SCREEN */
+#login-screen{display:flex;align-items:center;justify-content:center;min-height:100vh;padding:1rem;}
+.login-card{background:var(--surface2);border:1px solid var(--border);border-radius:var(--radius);padding:2rem;width:100%;max-width:360px;text-align:center;}
+.login-logo{font-size:40px;margin-bottom:12px;}
+.login-title{font-size:20px;font-weight:900;color:var(--gold);margin-bottom:4px;}
+.login-sub{font-size:13px;color:var(--text-muted);margin-bottom:1.5rem;}
+.login-input{width:100%;background:var(--surface3);border:1px solid var(--border);border-radius:var(--radius-sm);padding:11px 14px;color:var(--text);font-family:'Cairo',sans-serif;font-size:15px;outline:none;margin-bottom:12px;text-align:center;}
+.login-input:focus{border-color:var(--gold);}
+.login-btn{width:100%;background:var(--gold);color:#000;border:none;border-radius:var(--radius-sm);padding:11px;font-family:'Cairo',sans-serif;font-size:15px;font-weight:700;cursor:pointer;}
+.login-btn:hover{background:#E0A830;}
+.login-error{color:var(--red);font-size:13px;margin-top:8px;display:none;}
+
+/* ADMIN APP */
+#app{display:none;}
+.header{background:var(--surface);border-bottom:1px solid var(--border);padding:0.8rem 1.2rem;display:flex;align-items:center;justify-content:space-between;position:sticky;top:0;z-index:100;}
+.header-title{font-size:15px;font-weight:900;color:var(--gold);}
+.header-sub{font-size:10px;color:var(--text-muted);margin-top:2px;}
+.header-btns{display:flex;gap:6px;flex-shrink:0;}
+
+.nav{display:flex;background:var(--surface);border-bottom:1px solid var(--border);overflow-x:auto;scrollbar-width:none;position:sticky;top:60px;z-index:99;}
+.nav::-webkit-scrollbar{display:none;}
+.nav-btn{padding:12px 14px;border:none;background:transparent;color:var(--text-muted);font-family:'Cairo',sans-serif;font-size:13px;font-weight:500;cursor:pointer;white-space:nowrap;border-bottom:2px solid transparent;transition:all 0.2s;}
+.nav-btn:hover{color:var(--text);}
+.nav-btn.active{color:var(--gold);border-bottom-color:var(--gold);}
+
+.main{padding:1.1rem;max-width:720px;margin:0 auto;}
+.section{display:none;}.section.active{display:block;}
+
+.metrics{display:grid;grid-template-columns:repeat(2,1fr);gap:9px;margin-bottom:1.1rem;}
+.metric-card{background:var(--surface2);border:1px solid var(--border);border-radius:var(--radius);padding:0.85rem;}
+.metric-label{font-size:11px;color:var(--text-muted);margin-bottom:4px;}
+.metric-value{font-size:20px;font-weight:700;}
+.mv-gold{color:var(--gold);}.mv-green{color:var(--green);}.mv-red{color:var(--red);}.mv-blue{color:var(--blue);}
+
+.card{background:var(--surface2);border:1px solid var(--border);border-radius:var(--radius);padding:1.1rem;margin-bottom:0.9rem;}
+.card-title{font-size:15px;font-weight:700;margin-bottom:0.9rem;}
+
+.form-group{margin-bottom:12px;}
+.form-group label{display:block;font-size:12px;color:var(--text-muted);margin-bottom:5px;font-weight:600;}
+.form-group input,.form-group select{width:100%;background:var(--surface3);border:1px solid var(--border);border-radius:var(--radius-sm);padding:9px 11px;color:var(--text);font-family:'Cairo',sans-serif;font-size:14px;outline:none;transition:border-color 0.2s;appearance:none;}
+.form-group input:focus,.form-group select:focus{border-color:var(--gold);}
+.form-group select option{background:var(--surface3);}
+.row2{display:grid;grid-template-columns:1fr 1fr;gap:10px;}
+.row3{display:grid;grid-template-columns:1fr 1fr 1fr;gap:9px;}
+
+.btn{display:inline-flex;align-items:center;gap:5px;padding:9px 16px;border-radius:var(--radius-sm);border:none;font-family:'Cairo',sans-serif;font-size:14px;font-weight:600;cursor:pointer;transition:all 0.2s;}
+.btn-primary{background:var(--gold);color:#000;}.btn-primary:hover{background:#E0A830;}
+.btn-danger{background:var(--red-light);color:var(--red);border:1px solid rgba(239,68,68,0.2);}
+.btn-sm{padding:4px 10px;font-size:12px;}
+.btn-full{width:100%;justify-content:center;}
+
+.badge{display:inline-flex;align-items:center;padding:2px 8px;border-radius:20px;font-size:11px;font-weight:700;}
+.badge-gold{background:rgba(201,146,42,0.15);color:var(--gold);}
+.badge-silver{background:rgba(107,114,128,0.2);color:#9CA3AF;}
+.badge-green{background:var(--green-light);color:var(--green);}
+.badge-red{background:var(--red-light);color:var(--red);}
+
+.alert{padding:9px 12px;border-radius:var(--radius-sm);font-size:13px;margin-top:9px;display:none;}
+.alert.show{display:block;}
+.alert-success{background:var(--green-light);color:var(--green);border:1px solid rgba(34,197,94,0.2);}
+.alert-danger{background:var(--red-light);color:var(--red);border:1px solid rgba(239,68,68,0.2);}
+
+.progress-track{background:var(--surface3);border-radius:99px;height:5px;overflow:hidden;margin:6px 0 3px;}
+.progress-fill{height:100%;border-radius:99px;transition:width 0.4s;}
+.progress-labels{display:flex;justify-content:space-between;font-size:11px;color:var(--text-muted);}
+
+.dist-card{background:var(--surface2);border:1px solid var(--border);border-radius:var(--radius);padding:0.9rem 1.1rem;margin-bottom:0.6rem;transition:border-color 0.2s;}
+.dist-card:hover{border-color:rgba(201,146,42,0.3);}
+.dist-header{display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:8px;}
+.dist-name{font-size:15px;font-weight:700;}
+.dist-phone{font-size:12px;color:var(--text-muted);margin-top:2px;}
+.dist-amounts{display:flex;gap:12px;margin-bottom:7px;flex-wrap:wrap;}
+.dist-amount-item{font-size:12px;color:var(--text-muted);}
+.dist-amount-item strong{font-size:13px;font-weight:700;display:block;margin-top:1px;}
+
+.detail-table{width:100%;border-collapse:collapse;margin-top:6px;}
+.detail-table th{text-align:right;padding:6px 8px;font-size:11px;color:var(--text-dim);font-weight:600;border-bottom:1px solid var(--border);}
+.detail-table td{padding:7px 8px;font-size:12px;border-bottom:1px solid rgba(255,255,255,0.04);color:var(--text);}
+.detail-table tr:last-child td{border-bottom:none;}
+
+.section-heading{font-size:11px;font-weight:700;color:var(--text-muted);letter-spacing:0.07em;margin-bottom:0.55rem;margin-top:1.1rem;text-transform:uppercase;}
+.section-heading:first-child{margin-top:0;}
+
+.total-preview{background:rgba(201,146,42,0.08);border:1px solid rgba(201,146,42,0.2);border-radius:var(--radius-sm);padding:9px 12px;display:flex;justify-content:space-between;align-items:center;margin-top:10px;}
+.total-preview-label{font-size:13px;color:var(--text-muted);}
+.total-preview-value{font-size:19px;font-weight:700;color:var(--gold);}
+
+.empty{text-align:center;padding:3rem 1rem;color:var(--text-dim);font-size:14px;}
+.empty-icon{font-size:36px;margin-bottom:10px;opacity:0.5;}
+
+.expand-btn{background:none;border:none;color:var(--blue);font-family:'Cairo',sans-serif;font-size:12px;cursor:pointer;padding:3px 0;font-weight:600;}
+.details-panel{display:none;margin-top:10px;}
+.details-panel.open{display:block;}
+
+.pay-box{background:var(--surface3);border-radius:var(--radius-sm);padding:10px 12px;margin-bottom:10px;}
+.ticket-return-row{display:flex;justify-content:space-between;align-items:center;padding:7px 0;border-bottom:1px solid rgba(255,255,255,0.05);}
+.ticket-return-row:last-child{border-bottom:none;}
+.ticket-return-input{width:68px;background:var(--surface2);border:1px solid rgba(201,146,42,0.3);border-radius:6px;padding:5px 8px;color:var(--text);font-family:'Cairo',sans-serif;font-size:13px;font-weight:700;text-align:center;outline:none;}
+.ticket-return-input:focus{border-color:var(--gold);}
+
+@media(max-width:480px){.main{padding:0.85rem;}.metrics{grid-template-columns:repeat(2,1fr);}}
+</style>
+</head>
+<body>
+
+<!-- LOGIN -->
+<div id="login-screen">
+  <div class="login-card">
+    <div class="login-logo">🎭</div>
+    <div class="login-title">مسرح تي بارثينوس</div>
+    <div class="login-sub">لوحة تحكم الأدمن</div>
+    <input type="password" class="login-input" id="pass-input" placeholder="كلمة المرور" onkeydown="if(event.key==='Enter')doLogin()">
+    <button class="login-btn" onclick="doLogin()">دخول</button>
+    <div class="login-error" id="login-err"></div>
+  </div>
+</div>
+
+<!-- ADMIN APP -->
+<div id="app">
+  <div class="header">
+    <div>
+      <div class="header-title">🎭 مسرح تي بارثينوس – أدمن</div>
+      <div class="header-sub">درب الصليب 2026 – بهذا تغلب</div>
+    </div>
+    <div class="header-btns">
+      <button class="btn btn-sm" onclick="exportExcel()" style="background:var(--green-light);color:var(--green);border:1px solid rgba(34,197,94,0.25);">📊 Excel</button>
+      <button class="btn btn-sm" onclick="doLogout()" style="background:var(--surface3);color:var(--text-muted);border:1px solid var(--border);">خروج</button>
+    </div>
+  </div>
+
+  <nav class="nav">
+    <button class="nav-btn active" onclick="showTab('overview')">📊 عامة</button>
+    <button class="nav-btn" onclick="showTab('add-dist')">➕ موزع</button>
+    <button class="nav-btn" onclick="showTab('add-tickets')">🎫 تسليم</button>
+    <button class="nav-btn" onclick="showTab('add-payment')">💰 دفعة</button>
+    <button class="nav-btn" onclick="showTab('distributors')">👥 الموزعين</button>
+  </nav>
+
+  <div class="main">
+
+    <!-- OVERVIEW -->
+    <div id="overview" class="section active">
+      <div class="metrics">
+        <div class="metric-card"><div class="metric-label">إجمالي مطلوب</div><div class="metric-value mv-gold" id="ov-total">0 ج</div></div>
+        <div class="metric-card"><div class="metric-label">إجمالي مدفوع</div><div class="metric-value mv-green" id="ov-paid">0 ج</div></div>
+        <div class="metric-card"><div class="metric-label">إجمالي متبقي</div><div class="metric-value mv-red" id="ov-remaining">0 ج</div></div>
+        <div class="metric-card"><div class="metric-label">عدد الموزعين</div><div class="metric-value mv-blue" id="ov-count">0</div></div>
+      </div>
+      <div class="section-heading">الموزعين</div>
+      <div id="ov-list"></div>
+    </div>
+
+    <!-- ADD DISTRIBUTOR -->
+    <div id="add-dist" class="section">
+      <div class="card">
+        <div class="card-title">إضافة موزع جديد</div>
+        <div class="form-group"><label>اسم الموزع *</label><input type="text" id="d-name" placeholder="مثال: أحمد محمد"></div>
+        <div class="form-group"><label>رقم التليفون</label><input type="tel" id="d-phone" placeholder="01xxxxxxxxx"></div>
+        <button class="btn btn-primary btn-full" onclick="addDist()">إضافة الموزع</button>
+        <div class="alert" id="d-msg"></div>
+      </div>
+    </div>
+
+    <!-- ADD TICKETS -->
+    <div id="add-tickets" class="section">
+      <div class="card">
+        <div class="card-title">🎫 تسليم تذاكر لموزع</div>
+        <div class="form-group"><label>الموزع *</label><select id="tk-dist"><option value="">-- اختر موزع --</option></select></div>
+        <div class="row2">
+          <div class="form-group">
+            <label>نوع التذكرة *</label>
+            <select id="tk-type" onchange="updateRowSel();updatePreview()">
+              <option value="gold">🥇 جولد (150 ج)</option>
+              <option value="silver">🥈 سيلفر (100 ج)</option>
+            </select>
+          </div>
+          <div class="form-group"><label>رقم الصف *</label><select id="tk-row" onchange="updatePreview()"></select></div>
+        </div>
+        <div class="form-group"><label>عدد التذاكر *</label><input type="number" id="tk-count" min="1" value="1" oninput="updatePreview()"></div>
+        <div class="total-preview">
+          <span class="total-preview-label">الإجمالي المطلوب</span>
+          <span class="total-preview-value" id="tk-preview">150 ج</span>
+        </div>
+        <div style="margin-top:12px;"><button class="btn btn-primary btn-full" onclick="addTickets()">✔ تسليم التذاكر</button></div>
+        <div class="alert" id="tk-msg"></div>
+      </div>
+    </div>
+
+    <!-- ADD PAYMENT -->
+    <div id="add-payment" class="section">
+      <div class="card">
+        <div class="card-title">💰 تسجيل دفعة</div>
+        <div class="form-group">
+          <label>الموزع *</label>
+          <select id="py-dist" onchange="showBalance()"><option value="">-- اختر موزع --</option></select>
+        </div>
+        <div id="py-balance" style="display:none;">
+          <div class="pay-box" style="margin-bottom:10px;">
+            <div class="row3">
+              <div><div class="metric-label">مطلوب</div><div style="font-size:15px;font-weight:700;color:var(--gold)" id="py-b-total">0</div></div>
+              <div><div class="metric-label">مدفوع</div><div style="font-size:15px;font-weight:700;color:var(--green)" id="py-b-paid">0</div></div>
+              <div><div class="metric-label">متبقي</div><div style="font-size:15px;font-weight:700;color:var(--red)" id="py-b-rem">0</div></div>
+            </div>
+          </div>
+          <div id="py-ticket-section" style="display:none;margin-bottom:12px;">
+            <div style="font-size:12px;color:var(--text-muted);font-weight:700;letter-spacing:0.05em;text-transform:uppercase;margin-bottom:8px;">🎫 كم تذكرة باعها من كل صف؟</div>
+            <div class="pay-box" style="padding:6px 12px;"><div id="py-tickets-rows"></div></div>
+            <div style="font-size:11px;color:var(--text-dim);margin-top:5px;">هتتعلم مباعة في خريطة الجمهور</div>
+          </div>
+        </div>
+        <div class="form-group"><label>المبلغ المدفوع (ج) *</label><input type="number" id="py-amount" min="1" placeholder="مثال: 500"></div>
+        <div class="form-group"><label>ملاحظة</label><input type="text" id="py-note" placeholder="مثال: دفعة أولى"></div>
+        <button class="btn btn-primary btn-full" onclick="addPayment()">✔ تسجيل الدفعة وتحديث الخريطة</button>
+        <div class="alert" id="py-msg"></div>
+      </div>
+    </div>
+
+    <!-- DISTRIBUTORS -->
+    <div id="distributors" class="section">
+      <div id="dist-list"></div>
+    </div>
+
+  </div>
+</div>
+
+<script>
+let allDists = [];
+
+// ── AUTH ──────────────────────────────────────────────
+async function checkAuth() {
+  const res = await fetch('/api/me');
+  const d = await res.json();
+  if (d.admin) showApp();
+}
+
+async function doLogin() {
+  const pass = document.getElementById('pass-input').value;
+  const err  = document.getElementById('login-err');
+  try {
+    const res = await fetch('/api/login', { method:'POST', headers:{'Content-Type':'application/json'}, body: JSON.stringify({ password: pass }) });
+    if (res.ok) { showApp(); }
+    else {
+      const d = await res.json();
+      err.textContent = d.error || 'خطأ في تسجيل الدخول';
+      err.style.display = 'block';
+    }
+  } catch(e) { err.textContent = 'تعذر الاتصال بالسيرفر'; err.style.display = 'block'; }
+}
+
+async function doLogout() {
+  await fetch('/api/logout', { method: 'POST' });
+  location.reload();
+}
+
+function showApp() {
+  document.getElementById('login-screen').style.display = 'none';
+  document.getElementById('app').style.display = 'block';
+  loadData();
+}
+
+// ── DATA ──────────────────────────────────────────────
+async function loadData() {
+  try {
+    const res = await fetch('/api/admin/distributors');
+    allDists = await res.json();
+    renderOverview();
+  } catch(e) { console.error(e); }
+}
+
+function getStats(d) {
+  const total = d.tickets.reduce((a,t) => a + t.total, 0);
+  const paid  = d.payments.reduce((a,p) => a + p.amount, 0);
+  return { total, paid, remaining: total - paid };
+}
+
+// ── TABS ──────────────────────────────────────────────
+const tabMap = { overview:0,'add-dist':1,'add-tickets':2,'add-payment':3,distributors:4 };
+function showTab(id) {
+  document.querySelectorAll('.section').forEach(s => s.classList.remove('active'));
+  document.querySelectorAll('.nav-btn').forEach((b,i) => b.classList.toggle('active', i === tabMap[id]));
+  document.getElementById(id).classList.add('active');
+  if (id === 'add-tickets' || id === 'add-payment') fillSelects();
+  if (id === 'overview') renderOverview();
+  if (id === 'distributors') renderDists();
+}
+
+function showAlert(id, type, msg) {
+  const el = document.getElementById(id);
+  el.className = 'alert show alert-' + type; el.textContent = msg;
+  setTimeout(() => { el.className = 'alert'; el.textContent=''; }, 4000);
+}
+
+// ── SELECTS ───────────────────────────────────────────
+function fillSelects() {
+  ['tk-dist','py-dist'].forEach(sid => {
+    const sel = document.getElementById(sid); const cur = sel.value;
+    sel.innerHTML = '<option value="">-- اختر موزع --</option>';
+    allDists.forEach(d => {
+      const o = document.createElement('option');
+      o.value = d.id; o.textContent = d.name; sel.appendChild(o);
+    });
+    sel.value = cur;
+  });
+  updateRowSel(); updatePreview();
+}
+
+function updateRowSel() {
+  const type = document.getElementById('tk-type').value;
+  const sel = document.getElementById('tk-row'); sel.innerHTML = '';
+  const isG = type === 'gold'; const count = isG ? 8 : 12; const offset = isG ? 0 : 8;
+  for (let i = 1; i <= count; i++) {
+    const o = document.createElement('option');
+    o.value = offset + i; o.textContent = 'صف ' + (offset + i); sel.appendChild(o);
+  }
+}
+
+function updatePreview() {
+  const type  = document.getElementById('tk-type').value;
+  const count = parseInt(document.getElementById('tk-count').value) || 0;
+  const price = type === 'gold' ? 150 : 100;
+  document.getElementById('tk-preview').textContent = (count * price).toLocaleString('ar-EG') + ' ج';
+}
+
+// ── ADD DISTRIBUTOR ───────────────────────────────────
+async function addDist() {
+  const name  = document.getElementById('d-name').value.trim();
+  const phone = document.getElementById('d-phone').value.trim();
+  if (!name) { showAlert('d-msg','danger','من فضلك ادخل اسم الموزع'); return; }
+  const res = await fetch('/api/admin/distributors', { method:'POST', headers:{'Content-Type':'application/json'}, body: JSON.stringify({ name, phone }) });
+  if (res.ok) {
+    document.getElementById('d-name').value = ''; document.getElementById('d-phone').value = '';
+    showAlert('d-msg','success','✓ تم إضافة الموزع بنجاح');
+    await loadData();
+  }
+}
+
+// ── ADD TICKETS ───────────────────────────────────────
+async function addTickets() {
+  const distributor_id = document.getElementById('tk-dist').value;
+  const type   = document.getElementById('tk-type').value;
+  const row_num = parseInt(document.getElementById('tk-row').value);
+  const count  = parseInt(document.getElementById('tk-count').value);
+  if (!distributor_id) { showAlert('tk-msg','danger','اختر الموزع أولاً'); return; }
+  if (!count || count < 1) { showAlert('tk-msg','danger','ادخل عدد صحيح'); return; }
+  const price = type === 'gold' ? 150 : 100;
+  const res = await fetch('/api/admin/tickets', { method:'POST', headers:{'Content-Type':'application/json'}, body: JSON.stringify({ distributor_id, type, row_num, count }) });
+  if (res.ok) {
+    showAlert('tk-msg','success','✓ تم تسليم ' + count + ' تذكرة — الإجمالي: ' + (count * price).toLocaleString('ar-EG') + ' ج');
+    document.getElementById('tk-count').value = 1; updatePreview();
+    await loadData();
+  }
+}
+
+// ── PAYMENT ───────────────────────────────────────────
+function showBalance() {
+  const id = document.getElementById('py-dist').value;
+  const wrap = document.getElementById('py-balance');
+  const tsec = document.getElementById('py-ticket-section');
+  const trows = document.getElementById('py-tickets-rows');
+  if (!id) { wrap.style.display = 'none'; return; }
+  const d = allDists.find(x => x.id == id);
+  if (!d) return;
+  const s = getStats(d);
+  wrap.style.display = 'block';
+  document.getElementById('py-b-total').textContent = s.total.toLocaleString('ar-EG') + ' ج';
+  document.getElementById('py-b-paid').textContent  = s.paid.toLocaleString('ar-EG') + ' ج';
+  document.getElementById('py-b-rem').textContent   = s.remaining.toLocaleString('ar-EG') + ' ج';
+
+  const pending = d.tickets.filter(t => t.sold_count < t.count);
+  if (pending.length > 0) {
+    tsec.style.display = 'block';
+    trows.innerHTML = pending.map(t => {
+      const rem = t.count - t.sold_count;
+      return `<div class="ticket-return-row" data-tid="${t.id}">
+        <div style="display:flex;align-items:center;gap:7px;">
+          <span class="badge badge-${t.type}">${t.type==='gold'?'🥇 جولد':'🥈 سيلفر'}</span>
+          <span style="font-size:13px;">صف ${t.row_num}</span>
+          <span style="font-size:12px;color:var(--text-muted);">متبقي: ${rem}</span>
+          ${t.sold_count > 0 ? `<span style="font-size:11px;color:var(--green)">✓ بيع ${t.sold_count}</span>` : ''}
+        </div>
+        <div style="display:flex;align-items:center;gap:6px;">
+          <span style="font-size:11px;color:var(--text-muted);">باع:</span>
+          <input class="ticket-return-input" type="number" min="0" max="${rem}" value="0" data-tid="${t.id}" data-max="${rem}">
+        </div>
+      </div>`;
+    }).join('');
+  } else {
+    tsec.style.display = 'none';
+  }
+}
+
+async function addPayment() {
+  const distributor_id = document.getElementById('py-dist').value;
+  const amount = parseFloat(document.getElementById('py-amount').value);
+  const note   = document.getElementById('py-note').value.trim();
+  if (!distributor_id) { showAlert('py-msg','danger','اختر الموزع أولاً'); return; }
+  if (!amount || amount <= 0) { showAlert('py-msg','danger','ادخل مبلغ صحيح'); return; }
+
+  const ticketsSold = [];
+  document.querySelectorAll('.ticket-return-input').forEach(inp => {
+    let val = parseInt(inp.value) || 0;
+    const max = parseInt(inp.dataset.max);
+    if (val > max) val = max;
+    if (val > 0) ticketsSold.push({ ticketId: parseInt(inp.dataset.tid), count: val });
+  });
+
+  const res = await fetch('/api/admin/payments', {
+    method: 'POST', headers: {'Content-Type':'application/json'},
+    body: JSON.stringify({ distributor_id, amount, note, ticketsSold })
+  });
+
+  if (res.ok) {
+    document.getElementById('py-amount').value = ''; document.getElementById('py-note').value = '';
+    const soldTotal = ticketsSold.reduce((a,t) => a + t.count, 0);
+    showAlert('py-msg','success','✓ تم تسجيل الدفعة' + (soldTotal > 0 ? ' — ' + soldTotal + ' تذكرة مباعة في الخريطة' : ''));
+    await loadData();
+    showBalance();
+  }
+}
+
+// ── RENDER OVERVIEW ───────────────────────────────────
+function renderOverview() {
+  let totTotal = 0, totPaid = 0;
+  allDists.forEach(d => { const s = getStats(d); totTotal += s.total; totPaid += s.paid; });
+  document.getElementById('ov-total').textContent     = totTotal.toLocaleString('ar-EG') + ' ج';
+  document.getElementById('ov-paid').textContent      = totPaid.toLocaleString('ar-EG') + ' ج';
+  document.getElementById('ov-remaining').textContent = (totTotal - totPaid).toLocaleString('ar-EG') + ' ج';
+  document.getElementById('ov-count').textContent     = allDists.length;
+  const list = document.getElementById('ov-list');
+  if (!allDists.length) {
+    list.innerHTML = '<div class="empty"><div class="empty-icon">👥</div>لا يوجد موزعين<br><br><button class="btn btn-primary" onclick="showTab(\'add-dist\')">إضافة أول موزع</button></div>';
+    return;
+  }
+  list.innerHTML = allDists.map(d => {
+    const s = getStats(d);
+    const pct = s.total > 0 ? Math.min(100, Math.round(s.paid / s.total * 100)) : 0;
+    const tc  = d.tickets.reduce((a,t) => a + t.count, 0);
+    const sc  = d.tickets.reduce((a,t) => a + (t.sold_count || 0), 0);
+    const settled = s.remaining <= 0 && s.total > 0;
+    return `<div class="dist-card">
+      <div class="dist-header">
+        <div><div class="dist-name">${d.name}</div><div class="dist-phone">${tc} تذكرة • ${sc} مباع</div></div>
+        <span class="badge ${settled?'badge-green':'badge-red'}">${settled?'✓ مسدد':'متبقي '+s.remaining.toLocaleString('ar-EG')+' ج'}</span>
+      </div>
+      <div class="progress-track"><div class="progress-fill" style="width:${pct}%;background:${pct>=100?'var(--green)':'var(--gold)'}"></div></div>
+      <div class="progress-labels"><span>مطلوب: ${s.total.toLocaleString('ar-EG')} ج</span><span>${pct}% مدفوع</span></div>
+    </div>`;
+  }).join('');
+}
+
+// ── RENDER DISTRIBUTORS ───────────────────────────────
+function renderDists() {
+  const list = document.getElementById('dist-list');
+  if (!allDists.length) { list.innerHTML = '<div class="empty"><div class="empty-icon">👥</div>لا يوجد موزعين</div>'; return; }
+  list.innerHTML = allDists.map(d => {
+    const s = getStats(d);
+    const pct = s.total > 0 ? Math.min(100, Math.round(s.paid / s.total * 100)) : 0;
+    const settled = s.remaining <= 0 && s.total > 0;
+    const tc = d.tickets.reduce((a,t) => a + t.count, 0);
+    const sc = d.tickets.reduce((a,t) => a + (t.sold_count || 0), 0);
+    const tHTML = d.tickets.length ? d.tickets.map(t => `<tr>
+      <td><span class="badge badge-${t.type}">${t.type==='gold'?'🥇 جولد':'🥈 سيلفر'}</span></td>
+      <td>صف ${t.row_num}</td><td>${t.count}</td>
+      <td><span class="badge badge-red">${t.sold_count||0} مباع</span></td>
+      <td><strong>${t.total.toLocaleString('ar-EG')} ج</strong></td>
+      <td style="color:var(--text-muted);font-size:11px">${t.created_at ? t.created_at.split('T')[0] : ''}</td>
+    </tr>`).join('') : '<tr><td colspan="6" style="color:var(--text-dim);text-align:center;padding:10px">لا تذاكر</td></tr>';
+    const pHTML = d.payments.length ? d.payments.map(p => {
+      const ts = p.ticketsSold && p.ticketsSold.length > 0
+        ? p.ticketsSold.map(ts => {
+            const t = d.tickets.find(x => x.id === ts.ticketId);
+            return t ? `صف ${t.row_num} (${ts.count})` : '';
+          }).filter(Boolean).join('، ')
+        : '';
+      return `<tr>
+        <td style="color:var(--green);font-weight:700">+${p.amount.toLocaleString('ar-EG')} ج</td>
+        <td>${ts ? '<span class="badge badge-red" style="font-size:10px">'+ts+'</span>' : '—'}</td>
+        <td>${p.note||'—'}</td>
+        <td style="color:var(--text-muted);font-size:11px">${p.created_at ? p.created_at.split('T')[0] : ''}</td>
+      </tr>`;
+    }).join('') : '<tr><td colspan="4" style="color:var(--text-dim);text-align:center;padding:10px">لا دفعات</td></tr>';
+    return `<div class="dist-card">
+      <div class="dist-header">
+        <div><div class="dist-name">${d.name}</div>${d.phone?`<div class="dist-phone">📞 ${d.phone}</div>`:''}</div>
+        <div style="display:flex;gap:5px;align-items:center;">
+          <span class="badge ${settled?'badge-green':'badge-red'}">${settled?'✓ مسدد':'متبقي'}</span>
+          <button class="btn btn-danger btn-sm" onclick="deleteDist(${d.id})">حذف</button>
+        </div>
+      </div>
+      <div class="dist-amounts">
+        <div class="dist-amount-item">مطلوب<strong style="color:var(--gold)">${s.total.toLocaleString('ar-EG')} ج</strong></div>
+        <div class="dist-amount-item">مدفوع<strong style="color:var(--green)">${s.paid.toLocaleString('ar-EG')} ج</strong></div>
+        <div class="dist-amount-item">متبقي<strong style="color:var(--red)">${s.remaining.toLocaleString('ar-EG')} ج</strong></div>
+        <div class="dist-amount-item">مباع<strong style="color:var(--red)">${sc}</strong></div>
+      </div>
+      <div class="progress-track"><div class="progress-fill" style="width:${pct}%;background:${pct>=100?'var(--green)':'var(--gold)'}"></div></div>
+      <div class="progress-labels" style="margin-bottom:7px;"><span>0</span><span>${pct}%</span></div>
+      <button class="expand-btn" onclick="toggleDetails(this)">▼ عرض التفاصيل</button>
+      <div class="details-panel">
+        <div class="section-heading" style="margin-top:10px">التذاكر</div>
+        <div style="overflow-x:auto"><table class="detail-table"><thead><tr><th>النوع</th><th>الصف</th><th>العدد</th><th>الحالة</th><th>الإجمالي</th><th>التاريخ</th></tr></thead><tbody>${tHTML}</tbody></table></div>
+        <div class="section-heading" style="margin-top:12px">الدفعات</div>
+        <div style="overflow-x:auto"><table class="detail-table"><thead><tr><th>المبلغ</th><th>تذاكر مباعة</th><th>ملاحظة</th><th>التاريخ</th></tr></thead><tbody>${pHTML}</tbody></table></div>
+      </div>
+    </div>`;
+  }).join('');
+}
+
+function toggleDetails(btn) {
+  const panel = btn.nextElementSibling;
+  const open = panel.classList.toggle('open');
+  btn.textContent = open ? '▲ إخفاء التفاصيل' : '▼ عرض التفاصيل';
+}
+
+async function deleteDist(id) {
+  const d = allDists.find(x => x.id === id);
+  if (!d || !confirm('هتحذف الموزع "' + d.name + '"؟')) return;
+  await fetch('/api/admin/distributors/' + id, { method: 'DELETE' });
+  await loadData();
+  renderDists();
+  renderOverview();
+}
+
+// ── EXPORT EXCEL ──────────────────────────────────────
+async function exportExcel() {
+  if (typeof XLSX === 'undefined') { alert('مكتبة Excel مش متاحة'); return; }
+  const res = await fetch('/api/admin/export'); const raw = await res.json();
+  const wb = XLSX.utils.book_new();
+  const distMap = {}; raw.distributors.forEach(d => distMap[d.id] = d.name);
+  const ticketMap = {}; raw.tickets.forEach(t => ticketMap[t.id] = t);
+  const ptMap = {};
+  raw.payment_tickets.forEach(pt => {
+    if (!ptMap[pt.payment_id]) ptMap[pt.payment_id] = [];
+    ptMap[pt.payment_id].push(pt);
+  });
+  const sumRows = [['الموزع','التليفون','مطلوب','مدفوع','متبقي','مباع']];
+  raw.distributors.forEach(d => {
+    const dTickets = raw.tickets.filter(t => t.distributor_id === d.id);
+    const dPays    = raw.payments.filter(p => p.distributor_id === d.id);
+    const total  = dTickets.reduce((a,t) => a + t.total, 0);
+    const paid   = dPays.reduce((a,p) => a + p.amount, 0);
+    const sold   = dTickets.reduce((a,t) => a + t.sold_count, 0);
+    sumRows.push([d.name, d.phone||'', total, paid, total-paid, sold]);
+  });
+  XLSX.utils.book_append_sheet(wb, XLSX.utils.aoa_to_sheet(sumRows), 'الموزعين');
+  const tkRows = [['الموزع','النوع','الصف','العدد','مباع','الإجمالي','التاريخ']];
+  raw.tickets.forEach(t => tkRows.push([distMap[t.distributor_id]||'', t.type==='gold'?'جولد':'سيلفر', t.row_num, t.count, t.sold_count, t.total, t.created_at?.split('T')[0]||'']));
+  XLSX.utils.book_append_sheet(wb, XLSX.utils.aoa_to_sheet(tkRows), 'التذاكر');
+  const pyRows = [['الموزع','المبلغ','تذاكر مباعة','ملاحظة','التاريخ']];
+  raw.payments.forEach(p => {
+    const pts = ptMap[p.id] || [];
+    const ts = pts.map(pt => { const t = ticketMap[pt.ticket_id]; return t ? 'صف '+t.row_num+' ('+pt.sold_count+')' : ''; }).join('، ');
+    pyRows.push([distMap[p.distributor_id]||'', p.amount, ts, p.note||'', p.created_at?.split('T')[0]||'']);
+  });
+  XLSX.utils.book_append_sheet(wb, XLSX.utils.aoa_to_sheet(pyRows), 'الدفعات');
+  XLSX.writeFile(wb, 'بارثينوس_' + new Date().toLocaleDateString('ar-EG').replace(/\//g,'-') + '.xlsx');
+}
+
+// ── INIT ──────────────────────────────────────────────
+updateRowSel(); updatePreview();
+checkAuth();
+</script>
+</body>
+</html>
