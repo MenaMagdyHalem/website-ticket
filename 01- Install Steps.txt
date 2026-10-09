@@ -1,0 +1,95 @@
+
+
+الملفات بالترتيب
+1. package.json
+
+2. .env file 
+
+3. server.js
+Main Node.js server
+
+4. public/index.html — صفحة الجمهور (الخريطة فقط)
+Ran a command, created a file
+
+
+5. admin/index.html — صفحة الأدمن الكاملة
+Admin panel HTML
+
+
+6. ecosystem.config.js — لتشغيل التطبيق بـ 
+PM2 configP
+
+7. nginx.conf
+Nginx config
+
+الآن هنسخ كل الملفات للـ output:Ran a command, read a fileRan a command, read a fileالملفات 7 كلها جاهزة. دلوقتي خطوات الرفع على AWS:
+
+
+خطوات الرفع على EC2
+
+
+١. إنشاء الـ EC2 Instance
+
+Instance type: t3.micro (كافي ومجاني في Free Tier)
+OS: Ubuntu 22.04
+Security Group: افتح البورتات 22 (SSH) و 80 (HTTP)
+
+٢. اتصل بالسيرفر وثبّت المتطلبات
+ssh -i your-key.pem ubuntu@YOUR_EC2_IP
+
+# Node.js 20
+curl -fsSL https://deb.nodesource.com/setup_20.x | sudo -E bash -
+sudo apt-get install -y nodejs
+
+# Nginx
+sudo apt install nginx -y
+
+# PM2
+sudo npm install -g pm2
+
+٣. ارفع الملفات
+# من جهازك (مش السيرفر)
+scp -i your-key.pem -r ./theater-app ubuntu@YOUR_EC2_IP:~/theater
+
+٤. على السيرفر: ثبّت وشغّل
+cd ~/theater
+npm install
+# عدّل كلمة المرور في .env
+nano .env
+pm2 start ecosystem.config.js
+pm2 save
+pm2 startup
+
+٥. اضبط Nginx
+sudo cp ~/theater/nginx.conf /etc/nginx/sites-available/theater
+# عدّل YOUR_DOMAIN_OR_IP في الملف
+sudo nano /etc/nginx/sites-available/theater
+sudo ln -s /etc/nginx/sites-available/theater /etc/nginx/sites-enabled/
+sudo nginx -t
+sudo systemctl restart nginx
+
+٦. النتيجة
+
+http://YOUR_EC2_IP → الخريطة للجمهور
+http://YOUR_EC2_IP/admin → لوحة الأدمن (بكلمة المرور)
+
+
+
+pm2 restart theater-parthenos
+
+
+
+قبل أي حاجة — لا، البيانات مش هتتضيع لأن الـ database ملف theater.db على السيرفر ومش بيتأثر بتحديث الكود. بس خد backup احتياطي:
+
+bash
+cp ~/theater/theater.db ~/theater_backup_$(date +%Y%m%d).db
+
+
+
+
+
+
+
+
+
+
